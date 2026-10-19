@@ -1,0 +1,1137 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Prompt de Site KeyCode</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@600;700&display=swap">
+<style>
+/* Layout: landing de uma pergunta por tela. Capa com o resultado à mostra; depois 12 telas em coluna única, progresso no topo e navegação fixa embaixo no celular. */
+:root {
+  --bg: #00020D;
+  --panel: #000A33;
+  --field: #061040;
+  --line: #1F2752;
+  --line-2: #2C3770;
+  --fg: #FFFFFF;
+  --muted: #A9B1CF;
+  --dim: #8E98C2;
+  --accent: #2F5BFF;
+  --on-accent: #FFFFFF;
+  --accent-text: #8EA6FF;
+  --accent-wash: rgba(47, 91, 255, .16);
+  --gap: #F2B84B;
+  --gap-wash: rgba(242, 184, 75, .14);
+  --font-display: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --head-h: 60px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F3F4F8; --panel: #FFFFFF; --field: #FFFFFF; --line: #D9DDEA; --line-2: #C3C9DC;
+    --fg: #000A33; --muted: #4A5170; --dim: #565E80;
+    --accent: #2F5BFF; --on-accent: #FFFFFF; --accent-text: #2447D6; --accent-wash: rgba(47, 91, 255, .10);
+    --gap: #8A5300; --gap-wash: #FFF1D6;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F3F4F8; --panel: #FFFFFF; --field: #FFFFFF; --line: #D9DDEA; --line-2: #C3C9DC;
+  --fg: #000A33; --muted: #4A5170; --dim: #565E80;
+  --accent: #2F5BFF; --on-accent: #FFFFFF; --accent-text: #2447D6; --accent-wash: rgba(47, 91, 255, .10);
+  --gap: #8A5300; --gap-wash: #FFF1D6;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 16px/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--bg);
+}
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
+
+/* ---------- Topo ---------- */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.top__in { max-width: 1180px; margin: 0 auto; height: var(--head-h); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
+.brand svg { flex: none; }
+.brand b { font: 600 17px/1 var(--font-display); letter-spacing: -.01em; }
+.brand span { font: 400 12px/1 var(--font-mono); color: var(--dim); white-space: nowrap; }
+.top__meta { display: flex; align-items: center; gap: 14px; font: 400 12px/1 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.top__meta .g { color: var(--gap); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; margin-right: 8px; vertical-align: 1px; }
+.progress { height: 3px; background: var(--line); }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 240ms var(--ease); }
+
+/* ---------- Trilho de passos ---------- */
+.rail { border-bottom: 1px solid var(--line); }
+.rail ol { list-style: none; margin: 0 auto; padding: 10px 0; max-width: 1180px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.rail ol::-webkit-scrollbar { display: none; }
+.rail button {
+  border: 1px solid transparent; background: transparent; color: var(--dim);
+  font: 400 12.5px/1 var(--font-body); padding: 8px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.rail button:hover { color: var(--fg); }
+.rail button .n { font-family: var(--font-mono); font-size: 11px; }
+.rail button.is-done { color: var(--muted); }
+.rail button.is-done .n { color: var(--accent-text); }
+.rail button[aria-current="step"] { color: var(--fg); border-color: var(--line-2); background: var(--panel); }
+
+/* ---------- Telas ---------- */
+main { padding-block: 40px 140px; }
+.screen { animation: enter 240ms var(--ease) both; }
+@keyframes enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.q { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+.q--wide { max-width: 980px; }
+.eyebrow { margin: 0; font: 400 12.5px/1.4 var(--font-mono); color: var(--accent-text); }
+.q h2 { margin: 0; font: 600 clamp(30px, 4.6vw, 46px)/1.08 var(--font-display); letter-spacing: -.025em; text-wrap: balance; }
+.q h2 em { font-style: normal; color: var(--accent-text); }
+.lead { margin: 0; color: var(--muted); font-size: 17px; max-width: 60ch; }
+.body { display: grid; gap: 18px; }
+
+.tip { display: grid; gap: 6px; padding: 14px 16px; border-left: 2px solid var(--accent); background: var(--panel); border-radius: 0 10px 10px 0; }
+.tip span { font: 400 11.5px/1 var(--font-mono); color: var(--accent-text); }
+.tip p { margin: 0; font-size: 14px; color: var(--muted); }
+.tip b { color: var(--fg); font-weight: 500; }
+
+/* ---------- Campos ---------- */
+.field { display: grid; gap: 7px; min-width: 0; }
+.field > label, .field > .lbl { font-size: 14px; font-weight: 500; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.req { font: 400 11px/1 var(--font-mono); color: var(--accent-text); }
+.opt-tag { font: 400 11px/1 var(--font-mono); color: var(--dim); }
+.hint { font-size: 13px; color: var(--dim); }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+input[type="text"], textarea {
+  width: 100%; background: var(--field); color: var(--fg);
+  border: 1px solid var(--line-2); border-radius: 12px; padding: 13px 14px;
+  font: 400 16px/1.45 var(--font-body);
+  transition: border-color 160ms var(--ease);
+}
+input[type="text"]::placeholder, textarea::placeholder { color: var(--dim); opacity: .85; }
+input[type="text"]:hover, textarea:hover { border-color: var(--accent-text); }
+input[type="text"]:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+textarea { resize: vertical; min-height: 92px; }
+textarea.code { min-height: 240px; font: 400 14px/1.6 var(--font-mono); }
+
+/* Cartões de escolha */
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.opts--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.opt {
+  position: relative; display: grid; gap: 6px; align-content: start;
+  padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 14px;
+  background: var(--panel); cursor: pointer;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.opt b { font: 600 17px/1.25 var(--font-display); letter-spacing: -.01em; }
+.opt small { font: 400 12px/1.4 var(--font-mono); color: var(--accent-text); }
+.opt span { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.opt:hover { border-color: var(--accent-text); }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-wash); }
+.opt:has(input:checked)::after {
+  content: ""; position: absolute; top: 14px; right: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+}
+.opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.switch { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--line-2); border-radius: 12px; cursor: pointer; font-size: 14.5px; }
+.switch input { margin-top: 3px; accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+.switch span small { display: block; color: var(--dim); font-size: 13px; margin-top: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; display: inline-flex; align-items: center; padding: 9px 14px; min-height: 40px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 14px; color: var(--muted); cursor: pointer; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
+.chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chip:hover { border-color: var(--accent-text); }
+.chip:has(input:checked) { border-color: var(--accent); color: var(--fg); background: var(--accent-wash); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.lblrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.linkbtn { border: 0; background: none; padding: 0; font: 500 13px/1 var(--font-body); color: var(--accent-text); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Botões ---------- */
+.btn {
+  appearance: none; border: 1px solid transparent; border-radius: 12px; cursor: pointer;
+  font: 600 15px/1 var(--font-body); padding: 14px 20px; min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: inherit;
+  transition: background-color 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease);
+}
+.btn--primary { background: var(--accent); color: var(--on-accent); }
+.btn--primary:hover { filter: brightness(1.08); }
+.btn--ghost { background: transparent; color: var(--fg); border-color: var(--line-2); font-weight: 500; }
+.btn--ghost:hover { border-color: var(--accent-text); }
+.btn--text { background: transparent; color: var(--muted); font-weight: 500; padding-inline: 12px; }
+.btn--text:hover { color: var(--fg); }
+.btn--sm { padding: 10px 14px; min-height: 40px; font-size: 14px; }
+.btn--armed { border-color: var(--gap); color: var(--gap); }
+.arrow { font-family: var(--font-mono); }
+
+/* ---------- Capa ---------- */
+.hero { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-top: 8px; }
+.hero__copy { display: grid; gap: 22px; align-content: start; }
+.hero h1 { margin: 0; font: 700 clamp(40px, 6.4vw, 76px)/1.0 var(--font-display); letter-spacing: -.035em; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--accent-text); }
+.hero__lead { margin: 0; font-size: 18px; color: var(--muted); max-width: 46ch; }
+.hero__cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.resume { font-size: 14px; color: var(--muted); }
+.resume b { color: var(--fg); font-weight: 600; }
+.examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.examples > span { font: 400 12px/1 var(--font-mono); color: var(--dim); margin-right: 4px; }
+.facts { list-style: none; margin: 8px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.facts li { display: grid; gap: 4px; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.facts b { font: 600 15px/1.2 var(--font-display); color: var(--fg); }
+
+.term { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.term__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.term__head code { font: 500 13px/1.2 var(--font-mono); color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.term__head code em { font-style: normal; color: var(--accent-text); }
+.term__stats { font: 400 12px/1.2 var(--font-mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+.term__stats .g { color: var(--gap); }
+.prompt {
+  margin: 0; padding: 16px 18px 22px; overflow: auto;
+  font: 400 12.5px/1.7 var(--font-mono); color: var(--muted);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.prompt .h1 { color: var(--fg); font-weight: 500; font-size: 13.5px; }
+.prompt .h2 { color: var(--fg); font-weight: 500; }
+.prompt .h3 { color: var(--accent-text); }
+.prompt mark { border-radius: 3px; padding: 0 2px; }
+.prompt mark.v { background: var(--accent-wash); color: var(--fg); }
+.prompt mark.g { background: var(--gap-wash); color: var(--gap); }
+.hero .prompt { max-height: 430px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.cursor { display: inline-block; width: .6em; height: 1.1em; background: var(--accent); vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- Resultado ---------- */
+.res__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.missing { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 14px 16px; border-radius: 12px; background: var(--gap-wash); }
+.missing > span { font-size: 14px; color: var(--gap); margin-right: 4px; }
+.missing button { border: 1px solid var(--gap); background: transparent; color: var(--gap); font: 500 13px/1 var(--font-body); padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.sum div { padding: 14px 16px; display: grid; gap: 4px; border-right: 1px solid var(--line); min-width: 0; }
+.sum div:last-child { border-right: 0; }
+.sum dt { font: 400 11.5px/1 var(--font-mono); color: var(--dim); }
+.sum dd { margin: 0; font-size: 14.5px; font-weight: 500; }
+.res .prompt { max-height: 62vh; }
+
+/* ---------- Navegação ---------- */
+.stepnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--bg); border-top: 1px solid var(--line); padding-top: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+.stepnav__in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.stepnav__right { display: flex; gap: 8px; align-items: center; }
+.kbd { font: 400 12px/1 var(--font-mono); color: var(--dim); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .hero .prompt { max-height: 300px; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .sum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sum div:nth-child(2) { border-right: 0; }
+  .sum div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .opts--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kbd { display: none; }
+}
+@media (max-width: 560px) {
+  main { padding-top: 28px; }
+  .row2, .opts, .opts--3 { grid-template-columns: minmax(0, 1fr); }
+  .brand span, .top__meta .step-txt { display: none; }
+  .res__actions .btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<header class="top">
+  <div class="top__in gutter">
+    <button type="button" class="brand" id="homeBtn" aria-label="Voltar para a capa">
+      <svg width="30" height="28" viewBox="0 0 30 28" aria-hidden="true">
+        <g fill="none" stroke="var(--line-2)" stroke-width="1.5">
+          <polygon points="9,2 14.2,5 14.2,11 9,14 3.8,11 3.8,5"/>
+          <polygon points="20.4,2 25.6,5 25.6,11 20.4,14 15.2,11 15.2,5"/>
+        </g>
+        <polygon points="14.7,12 19.9,15 19.9,21 14.7,24 9.5,21 9.5,15" fill="var(--accent)"/>
+      </svg>
+      <b>KeyCode</b>
+      <span>// prompt de site</span>
+    </button>
+    <div class="top__meta" id="topMeta"><span><i class="dot" aria-hidden="true"></i>padrão Speed · Bytes · Konus</span></div>
+  </div>
+  <div class="progress" id="progress" hidden><i></i></div>
+</header>
+
+<nav class="rail gutter" id="rail" aria-label="Passos" hidden><ol id="railList"></ol></nav>
+
+<main class="gutter" id="main">
+  <form id="form" autocomplete="off" novalidate>
+
+    <!-- ===== CAPA ===== -->
+    <section class="screen" data-screen="capa" aria-labelledby="h-capa">
+      <div class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">// célula 2 · prévia</p>
+          <h1 id="h-capa" tabindex="-1">Prompt de site em <em>2 minutos.</em></h1>
+          <p class="hero__lead">Uma pergunta por vez sobre o cliente. No fim, o prompt sai pronto com o padrão KeyCode: laboratório de variantes, DNA dos nossos melhores sites, stack e critérios de aceite.</p>
+          <div class="hero__cta">
+            <button type="button" class="btn btn--primary" id="startBtn">Começar ficha nova <span class="arrow" aria-hidden="true">→</span></button>
+            <button type="button" class="btn btn--ghost" id="resumeBtn" hidden></button>
+          </div>
+          <div class="examples">
+            <span>Ver um pronto:</span>
+            <button type="button" class="btn btn--ghost btn--sm" data-example="bytes">Bytes Eletrônicos</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-example="speed">Speed Travel</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-example="konus">Konus Pizza</button>
+          </div>
+          <ul class="facts">
+            <li><b>12 telas</b>Uma decisão por vez. Escolhas grandes, texto só onde precisa.</li>
+            <li><b>Escopo travado</b>O produto vendido limita seções, páginas e nível de animação.</li>
+            <li><b>Nada inventado</b>O que faltar sai marcado para a IA pesquisar ou usar placeholder.</li>
+          </ul>
+        </div>
+        <div class="term" aria-label="Exemplo de prompt gerado">
+          <div class="term__head"><code><em>$</em> cat prompt-bytes-eletronicos.md <span class="cursor" aria-hidden="true"></span></code><span class="term__stats">exemplo real</span></div>
+          <pre class="prompt" id="heroPrompt" aria-hidden="true"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 1 PRODUTO ===== -->
+    <section class="screen" data-screen="produto" aria-labelledby="h-produto" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-produto" tabindex="-1">O que foi <em>vendido?</em></h2>
+        <p class="lead">Isso trava o escopo. A IA não passa do limite de seções, páginas e animação.</p>
+        <div class="body">
+          <div class="opts" role="radiogroup" aria-label="Produto contratado">
+            <label class="opt"><input type="radio" name="produto" value="simples"><b>LP Simples</b><small>R$ 1.600</small><span>1 página, até 6 seções. Motion N1: acabamento.</span></label>
+            <label class="opt"><input type="radio" name="produto" value="complexa"><b>LP Complexa</b><small>a partir de R$ 2.500</small><span>Até 10 seções ou 3 páginas. Motion N2: scroll storytelling.</span></label>
+            <label class="opt"><input type="radio" name="produto" value="institucional"><b>Site institucional</b><small>tabela da LP Complexa</small><span>Até 3 páginas, extras como adicional. Motion N2.</span></label>
+            <label class="opt"><input type="radio" name="produto" value="ecommerce"><b>E-commerce</b><small>a partir de R$ 3.500</small><span>Até 50 produtos, Pix, cartão e frete. Next.js.</span></label>
+          </div>
+          <label class="switch" id="addonWrap"><input type="checkbox" id="addon"><span>Adicional de animação de produto, 3D ou vídeo contratado (+R$ 750)<small>Sobe o motion para N3.</small></span></label>
+          <div class="field" id="paginasField"><label for="paginas">Quais páginas? <span class="opt-tag">opcional</span></label><input type="text" id="paginas" placeholder="Início, Serviços, Sobre, Contato"></div>
+        </div>
+        <div class="tip"><span>// regra</span><p>Ideia boa fora do limite não entra no site: vai para <b>Upgrades sugeridos</b>, no fim da entrega.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 2 SEGMENTO ===== -->
+    <section class="screen" data-screen="segmento" aria-labelledby="h-segmento" hidden>
+      <div class="q q--wide">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-segmento" tabindex="-1">Qual é o <em>tipo de negócio?</em></h2>
+        <p class="lead">Define o mapa de seções e a ferramenta que decide pelo cliente. Você ajusta tudo no passo Estrutura.</p>
+        <div class="opts opts--3" role="radiogroup" aria-label="Segmento">
+          <label class="opt"><input type="radio" name="segmento" value="agenda"><b>Serviço com agenda</b><span>Barbearia, estética, clínica, escritório.</span></label>
+          <label class="opt"><input type="radio" name="segmento" value="varejo"><b>Loja e vitrine</b><small>como a Bytes</small><span>Produto com preço e botão de comprar.</span></label>
+          <label class="opt"><input type="radio" name="segmento" value="food"><b>Comida e cardápio</b><small>como a Konus</small><span>Cardápio com preço e pedido no WhatsApp.</span></label>
+          <label class="opt"><input type="radio" name="segmento" value="provedor"><b>Planos e assinatura</b><small>como a Speed</small><span>Provedor, academia, plano mensal.</span></label>
+          <label class="opt"><input type="radio" name="segmento" value="empresa"><b>Empresa ou B2B</b><small>como o keycodes.com.br</small><span>Serviço sob orçamento, institucional.</span></label>
+          <label class="opt"><input type="radio" name="segmento" value="outro"><b>Outro</b><span>Ainda não sei ou não se encaixa.</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3 CLIENTE ===== -->
+    <section class="screen" data-screen="cliente" aria-labelledby="h-cliente" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-cliente" tabindex="-1">Quem é o <em>cliente?</em></h2>
+        <div class="body">
+          <div class="row2">
+            <div class="field"><label for="nome">Nome do negócio <span class="req">essencial</span></label><input type="text" id="nome" placeholder="Bytes Eletrônicos"></div>
+            <div class="field"><label for="cidade">Cidade e região <span class="req">essencial</span></label><input type="text" id="cidade" placeholder="Cacoal (RO), no Cacoal Shopping"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="instagram">Instagram</label><input type="text" id="instagram" placeholder="@byteseletronicos"></div>
+            <div class="field"><label for="site">Site atual</label><input type="text" id="site" placeholder="byteseletronicos.com.br"></div>
+          </div>
+        </div>
+        <div class="tip"><span>// por que importa</span><p>Com Instagram e site, a IA puxa preços, fotos e o jeito de falar do cliente sem você digitar.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 4 OBJETIVO ===== -->
+    <section class="screen" data-screen="acao" aria-labelledby="h-acao" hidden>
+      <div class="q q--wide">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-acao" tabindex="-1">O que o visitante <em>tem que fazer?</em></h2>
+        <p class="lead">Uma ação só. Todo botão do site leva até ela.</p>
+        <div class="opts opts--3" role="radiogroup" aria-label="Ação principal">
+          <label class="opt"><input type="radio" name="acao" value="whatsapp"><b>Chamar no WhatsApp</b><span>Conversa com a mensagem já escrita.</span></label>
+          <label class="opt"><input type="radio" name="acao" value="agendar"><b>Agendar horário</b><span>Serviço, dia e período pelo WhatsApp.</span></label>
+          <label class="opt"><input type="radio" name="acao" value="orcamento"><b>Pedir orçamento</b><span>Perguntas rápidas, pedido sai pronto.</span></label>
+          <label class="opt"><input type="radio" name="acao" value="pedido"><b>Fazer o pedido</b><span>Itens montados na página, enviados no WhatsApp.</span></label>
+          <label class="opt"><input type="radio" name="acao" value="comprar"><b>Comprar no site</b><span>Carrinho e pagamento na própria loja.</span></label>
+          <label class="opt"><input type="radio" name="acao" value="ligar"><b>Ligar</b><span>Botão de chamada direto.</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 5 CONTATO ===== -->
+    <section class="screen" data-screen="contato" aria-labelledby="h-contato" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-contato" tabindex="-1">Para onde vai <em>a conversa?</em></h2>
+        <div class="body">
+          <div class="field"><label for="whats">WhatsApp de vendas</label><input type="text" id="whats" placeholder="(69) 99999-9999" inputmode="tel"></div>
+          <div class="field"><label for="msg">Mensagem base</label><input type="text" id="msg" placeholder="Olá! Vim pelo site e tenho interesse no [produto]."><span class="hint">Cada botão adapta ao contexto: produto, plano, seção.</span></div>
+          <div class="field"><label for="acao2">Ação secundária <span class="opt-tag">opcional</span></label><input type="text" id="acao2" placeholder="Ver como chegar, consultar cobertura pelo CEP"></div>
+        </div>
+        <div class="tip"><span>// como fizemos na Bytes</span><p><b>"Olá! Vim pelo site e tenho interesse no iPhone 17 Pro 256 GB. Está disponível?"</b> O vendedor já sabe o que a pessoa quer antes de responder.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 6 PÚBLICO ===== -->
+    <section class="screen" data-screen="publico" aria-labelledby="h-publico" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-publico" tabindex="-1">Quem compra e <em>o que dói?</em></h2>
+        <div class="body">
+          <div class="field"><label for="publico">Quem compra <span class="req">essencial</span></label><input type="text" id="publico" placeholder="Idade, bairro ou cidade, renda aproximada, celular ou computador"></div>
+          <div class="field"><label for="dor">A dor, nas palavras dele <span class="req">essencial</span></label><input type="text" id="dor" placeholder="&quot;Minha internet cai bem na hora do jogo&quot;"></div>
+          <div class="field"><label for="objecoes">Objeções que ele mais ouve <span class="opt-tag">uma por linha</span></label><textarea id="objecoes" rows="3"></textarea></div>
+          <div class="field">
+            <span class="lbl" id="l-decide">O que faz ele decidir</span>
+            <div class="chips" role="group" aria-labelledby="l-decide">
+              <label class="chip"><input type="checkbox" name="decide" value="preço">Preço</label>
+              <label class="chip"><input type="checkbox" name="decide" value="confiança">Confiança</label>
+              <label class="chip"><input type="checkbox" name="decide" value="rapidez">Rapidez</label>
+              <label class="chip"><input type="checkbox" name="decide" value="status">Status</label>
+              <label class="chip"><input type="checkbox" name="decide" value="conveniência">Conveniência</label>
+            </div>
+          </div>
+        </div>
+        <div class="tip"><span>// como fizemos na Speed</span><p>A dor virou título: <b>"Se a sua internet faz isso, o problema não é você."</b></p></div>
+      </div>
+    </section>
+
+    <!-- ===== 7 OFERTA ===== -->
+    <section class="screen" data-screen="oferta" aria-labelledby="h-oferta" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-oferta" tabindex="-1">O que ele vende <em>de melhor?</em></h2>
+        <div class="body">
+          <div class="field"><label for="carro">Carro-chefe e preço <span class="req">essencial</span></label><input type="text" id="carro" placeholder="iPhone 17 Pro 256 GB por 12x R$ 753,39"></div>
+          <div class="field"><label for="diferencial">O que só ele faz <span class="req">essencial</span></label><input type="text" id="diferencial" placeholder="Laboratório próprio de reparo"></div>
+          <div class="row2">
+            <div class="field"><label for="oferta">Oferta ou condição</label><input type="text" id="oferta" placeholder="12x no boleto, sem banco"></div>
+            <div class="field"><label for="garantia">Garantia</label><input type="text" id="garantia" placeholder="1 ano em todos os produtos"></div>
+          </div>
+        </div>
+        <div class="tip"><span>// regra</span><p>Preço e parcela reais na tela vendem mais que "consulte". Se o negócio permite, eles aparecem.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 8 PROVA ===== -->
+    <section class="screen" data-screen="prova" aria-labelledby="h-prova" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-prova" tabindex="-1">O que <em>comprova</em> tudo isso?</h2>
+        <p class="lead">Só dado real. O que faltar vira placeholder âmbar no site, nunca número inventado.</p>
+        <div class="body">
+          <div class="field"><label for="provas">Provas reais <span class="req">essencial</span></label><textarea id="provas" rows="4" placeholder="Uma por linha: nota e avaliações no Google, anos de casa, clientes atendidos, número medido"></textarea></div>
+        </div>
+        <div class="tip"><span>// como fizemos na Speed</span><p><b>"Velocidade medida. Não prometida."</b> Em cima de 618 Mbps de média real em Cacoal.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 9 MARCA ===== -->
+    <section class="screen" data-screen="marca" aria-labelledby="h-marca" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-marca" tabindex="-1">Qual é a <em>cara</em> da marca?</h2>
+        <p class="lead">Tudo opcional. Em branco, a IA propõe no laboratório.</p>
+        <div class="body">
+          <div class="field"><label for="marca">Marca existente</label><textarea id="marca" rows="2" placeholder="Logo, cores em HEX, fontes"></textarea></div>
+          <div class="field"><label for="paleta">De onde tirar a paleta</label><input type="text" id="paleta" placeholder="Fachada: azul do letreiro, laranja do neon da porta"></div>
+          <div class="row2">
+            <div class="field"><label for="personalidade">Personalidade em uma frase</label><input type="text" id="personalidade" placeholder="O especialista do bairro com vitrine de shopping"></div>
+            <div class="field"><label for="tom">Tom em 3 palavras</label><input type="text" id="tom" placeholder="técnico, seguro, atual"></div>
+          </div>
+          <div class="field"><label for="refs">Referências</label><textarea id="refs" rows="2" placeholder="Links do Awwwards, Godly, Refero ou sites que o cliente gosta, um por linha"></textarea></div>
+        </div>
+        <div class="tip"><span>// como fizemos na Bytes</span><p>A paleta saiu da fachada: <b>o azul do letreiro, o laranja do neon da porta e o azul-noite do shopping</b>.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 10 MATERIAIS ===== -->
+    <section class="screen" data-screen="materiais" aria-labelledby="h-materiais" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-materiais" tabindex="-1">O que já temos <em>em mãos?</em></h2>
+        <div class="body">
+          <div class="field">
+            <span class="lbl" id="l-fotos">Fotos</span>
+            <div class="opts" role="radiogroup" aria-labelledby="l-fotos">
+              <label class="opt"><input type="radio" name="fotos" value="real"><b>Fotos reais prontas</b><span>O cliente mandou.</span></label>
+              <label class="opt"><input type="radio" name="fotos" value="insta"><b>Fotos do Instagram</b><span>A IA usa o feed do cliente.</span></label>
+              <label class="opt"><input type="radio" name="fotos" value="none"><b>Ainda não temos</b><span>Provisórias com lista de troca no README.</span></label>
+              <label class="opt"><input type="radio" name="fotos" value=""><b>Ainda não sei</b><span>Fica como lacuna.</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl" id="l-origem">De onde vem o visitante</span>
+            <div class="chips" role="group" aria-labelledby="l-origem">
+              <label class="chip"><input type="checkbox" name="origem" value="Instagram">Instagram</label>
+              <label class="chip"><input type="checkbox" name="origem" value="Google Maps e busca">Google Maps e busca</label>
+              <label class="chip"><input type="checkbox" name="origem" value="Anúncio Meta">Anúncio Meta</label>
+              <label class="chip"><input type="checkbox" name="origem" value="Anúncio Google">Anúncio Google</label>
+              <label class="chip"><input type="checkbox" name="origem" value="Indicação">Indicação</label>
+            </div>
+          </div>
+          <div class="field"><label for="meta">Meta em 90 dias <span class="opt-tag">opcional</span></label><input type="text" id="meta" placeholder="30 conversas por mês vindas do site"></div>
+          <div class="field"><label for="copy">Copy pronta <span class="opt-tag">opcional</span></label><textarea id="copy" rows="3" placeholder="Cole aqui a copy da skill copy-lp-vendas. Em branco, a IA escreve a partir das respostas."></textarea></div>
+          <div class="field"><label for="obs">Observações <span class="opt-tag">opcional</span></label><textarea id="obs" rows="2" placeholder="Prazo, o que o cliente odeia, concorrente que incomoda"></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 11 ESTRUTURA ===== -->
+    <section class="screen" data-screen="estrutura" aria-labelledby="h-estrutura" hidden>
+      <div class="q">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-estrutura" tabindex="-1">A estrutura <em>está certa?</em></h2>
+        <p class="lead" id="secoesHint">Sugestão do segmento dentro do limite do produto. O que você escrever aqui manda.</p>
+        <div class="body">
+          <div class="field">
+            <div class="lblrow"><label for="secoes">Mapa de seções</label><button type="button" class="linkbtn" id="restoreSecoes" hidden>Restaurar sugestão</button></div>
+            <textarea id="secoes" class="code" rows="9"></textarea>
+          </div>
+          <div class="field">
+            <div class="lblrow"><label for="ferramenta">Ferramenta que decide pelo cliente</label><button type="button" class="linkbtn" id="restoreFerramenta" hidden>Restaurar sugestão</button></div>
+            <textarea id="ferramenta" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="tip"><span>// como fizemos na Speed</span><p>Um seletor de velocidade no topo e um quiz de 3 toques que indica o plano. Os dois abrem o WhatsApp com o plano escolhido.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 12 PROMPT ===== -->
+    <section class="screen res" data-screen="prompt" aria-labelledby="h-prompt" hidden>
+      <div class="q q--wide">
+        <p class="eyebrow" data-count></p>
+        <h2 id="h-prompt" tabindex="-1">Prompt <em>pronto.</em></h2>
+        <p class="lead" id="resLead">Cole na IA que vai construir o site. Ela entrega o laboratório primeiro e para até você escolher as variantes.</p>
+        <div class="res__actions">
+          <button type="button" class="btn btn--primary" data-copy>Copiar prompt</button>
+          <button type="button" class="btn btn--ghost" id="editBtn">Revisar respostas</button>
+          <button type="button" class="btn btn--ghost" id="resetBtn">Novo cliente</button>
+        </div>
+        <div class="missing" id="resMissing" hidden></div>
+        <dl class="sum" id="resSum"></dl>
+        <div class="term">
+          <div class="term__head"><code><em>$</em> cat <span id="fileName">prompt.md</span></code><span class="term__stats" id="stats"></span></div>
+          <pre class="prompt" id="prompt" tabindex="0" aria-label="Prompt gerado"></pre>
+        </div>
+      </div>
+    </section>
+  </form>
+</main>
+
+<nav class="stepnav gutter" id="stepnav" aria-label="Navegação entre telas" hidden>
+  <div class="stepnav__in">
+    <button type="button" class="btn btn--text" id="backBtn"><span class="arrow" aria-hidden="true">←</span> Voltar</button>
+    <div class="stepnav__right">
+      <span class="kbd">Enter para seguir</span>
+      <button type="button" class="btn btn--ghost" id="skipBtn">Pular</button>
+      <button type="button" class="btn btn--primary" id="nextBtn">Continuar <span class="arrow" aria-hidden="true">→</span></button>
+    </div>
+  </div>
+</nav>
+
+<script>
+/* ===== Dados e montagem do prompt (funções puras) ===== */
+const PRODUCTS = {
+  simples: { label: 'LP Simples', scope: '1 página, até 6 seções (o rodapé não conta)', motion: 'N1', pro: 'N2', stack: 'static', map: 's' },
+  complexa: { label: 'LP Complexa', scope: '1 página com até 10 seções, ou até 3 páginas', motion: 'N2', pro: 'N3', stack: 'static', map: 'c' },
+  institucional: { label: 'Site institucional', scope: 'até 3 páginas; páginas extras só como adicional contratado', motion: 'N2', pro: 'N3', stack: 'static', map: 'c' },
+  ecommerce: { label: 'E-commerce', scope: 'até 50 produtos, Pix e cartão, frete, painel de pedidos e estoque', motion: 'N2', pro: 'N3', stack: 'next', map: 'c' },
+};
+
+const MOTION = {
+  N1: 'N1 Acabamento: microinterações, hover, transições e entrada das seções; sem pin nem scrub',
+  N2: 'N2 Scroll storytelling: GSAP + ScrollTrigger com pin e scrub, SplitText nos títulos, parallax em camadas e rolagem suave com Lenis; uma cena assinatura',
+  N3: 'N3 Imersivo: tudo do N2 mais produto em 3D/WebGL ou sequência de frames controlada pelo scroll',
+};
+
+const STACK = {
+  static: 'HTML, CSS e JS estático, sem build (padrão Speed e Bytes)',
+  next: 'Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui',
+};
+
+const SEGMENTS = {
+  agenda: {
+    name: 'Serviço com agenda',
+    s: ['Capa: o resultado, com prova rápida e botão de agendar', 'Serviços com preço', 'Prova: antes e depois e avaliações do Google', 'Quem atende', 'Como agendar e onde fica', 'Dúvidas rápidas e fechamento'],
+    c: ['Capa: o resultado, com prova rápida e botão de agendar', 'Serviços com preço', 'Antes e depois', 'Quem atende', 'Prova: avaliações do Google', 'Como agendar: em 3 passos', 'Espaço e localização', 'Dúvidas rápidas', 'Fechar: agendar agora'],
+    tool: 'Escolher serviço, dia e período em 3 toques e abrir o WhatsApp com o pedido de horário pronto.',
+  },
+  varejo: {
+    name: 'Loja e vitrine de produtos',
+    s: ['Capa: a frase que prende, com o produto herói', 'Vitrine: preço e botão na cara', 'Por que comprar aqui: tirar o medo da compra', 'O que só ele faz', 'Prova: loja, números e avaliações reais', 'Fechar a venda: WhatsApp, endereço e horário'],
+    c: ['Capa: a frase que prende, com o produto herói', 'Vitrine: preço e botão na cara', 'Por que comprar aqui: tirar o medo da compra', 'O que só ele faz', 'Prova: loja, números e avaliações reais', 'Como comprar: pagamento, entrega ou retirada', 'Dúvidas rápidas', 'Fechar a venda: WhatsApp, endereço e horário'],
+    tool: 'Vitrine com filtro (ex.: novo e seminovo) e simulador de parcelas; cada produto abre o WhatsApp com modelo e preço já escritos.',
+  },
+  food: {
+    name: 'Comida e cardápio',
+    s: ['Capa: o produto que dá fome, com o botão de pedir', 'Cardápio: sabor, preço e botão', 'Como pedir: em 3 passos', 'Prova: avaliações e fotos reais', 'Onde e quando: endereço, horário, retirada e entrega', 'Fechar o pedido'],
+    c: ['Capa: o produto que dá fome, com o botão de pedir', 'Cardápio: sabor, preço e botão', 'Combos e promoções', 'Como pedir: em 3 passos', 'Prova: avaliações e fotos reais', 'Onde e quando: endereço, horário, retirada e entrega', 'Dúvidas rápidas', 'Fechar o pedido'],
+    tool: 'Montar o pedido na própria página (itens e quantidades) e enviar pronto para o WhatsApp.',
+  },
+  provedor: {
+    name: 'Planos e assinatura',
+    s: ['Capa: a promessa com a prova na primeira dobra', 'Dor: o problema que ele vive hoje', 'Planos: preço e botão na cara', 'Prova: número medido, não prometido', 'Objeções e garantia: sem letra miúda', 'Dúvidas rápidas e fechamento'],
+    c: ['Capa: a promessa com a prova na primeira dobra', 'Dor: o problema que ele vive hoje, nas palavras dele', 'Solução: a cena assinatura mostra como funciona', 'Prova: número medido, não prometido', 'Planos: preço e botão na cara', 'Qual plano é o seu: quiz de 3 toques', 'Objeções: "talvez você esteja pensando…"', 'Garantia: sem letra miúda', 'Dúvidas rápidas', 'Fechar: CTA final com a barra fixa no celular'],
+    tool: 'Seletor de plano no hero (velocidade, preço e o que muda) e quiz de 3 toques que indica o plano; os dois abrem o WhatsApp com o plano escolhido.',
+  },
+  empresa: {
+    name: 'Empresa, B2B ou institucional',
+    s: ['Capa: o que você resolve, em uma frase', 'O que fazemos', 'Como trabalhamos: as etapas reais', 'Projetos e prova', 'Dúvidas rápidas', 'Orçamento'],
+    c: ['Capa: o que você resolve, em uma frase', 'O que fazemos', 'Como trabalhamos: as etapas reais', 'Projetos e cases', 'Quem faz', 'Prova: clientes, números e depoimentos reais', 'Dúvidas rápidas', 'Orçamento'],
+    tool: 'Orçamento em 3 perguntas, uma por vez, que monta a mensagem e abre o WhatsApp (padrão keycodes.com.br).',
+  },
+  outro: {
+    name: 'Outro',
+    s: ['Capa: a promessa com prova rápida', 'Dor e solução', 'Benefícios', 'Prova', 'Oferta e garantia', 'Dúvidas rápidas e fechamento'],
+    c: ['Capa: a promessa com prova rápida', 'Dor: o problema nas palavras do cliente', 'Solução: como o negócio resolve', 'Benefícios: o que muda na vida dele', 'Prova', 'Oferta', 'Garantia', 'Dúvidas rápidas', 'Fechar'],
+    tool: 'Definir no laboratório: uma ferramenta de até 3 toques que decide pelo visitante e entrega a mensagem pronta no WhatsApp.',
+  },
+};
+
+const ACOES = {
+  whatsapp: 'Chamar no WhatsApp',
+  agendar: 'Agendar horário pelo WhatsApp',
+  orcamento: 'Pedir orçamento pelo WhatsApp',
+  pedido: 'Fazer o pedido pelo WhatsApp',
+  comprar: 'Comprar no site',
+  ligar: 'Ligar',
+};
+
+const FOTOS = {
+  real: 'Fotos reais do cliente prontas',
+  insta: 'Usar as fotos do Instagram do cliente',
+  none: 'Ainda não temos: usar provisórias de banco de imagem e listar cada troca no README',
+};
+
+const TEXT_IDS = ['nome', 'cidade', 'instagram', 'site', 'paginas', 'whats', 'msg', 'acao2', 'meta', 'publico', 'dor', 'objecoes', 'carro', 'oferta', 'garantia', 'diferencial', 'provas', 'marca', 'paleta', 'personalidade', 'tom', 'refs', 'copy', 'obs', 'secoes', 'ferramenta'];
+
+const ESSENTIALS = [['nome', 'Nome', 'cliente'], ['cidade', 'Cidade', 'cliente'], ['publico', 'Quem compra', 'publico'], ['dor', 'Dor', 'publico'], ['carro', 'Carro-chefe', 'oferta'], ['diferencial', 'O que só ele faz', 'oferta'], ['provas', 'Provas', 'prova']];
+
+/* Marcadores invisíveis: valor da ficha e lacuna. Saem do texto copiado. */
+const V = (x) => '\u0001' + x + '\u0002';
+const G = (x) => '\u0003[' + (x || 'NÃO INFORMADO') + ']\u0004';
+const t = (x) => (x || '').trim();
+const f = (x, gap) => (t(x) ? V(t(x)) : G(gap));
+const inline = (x) => t(x).split('\n').map((s) => s.trim()).filter(Boolean).join('; ');
+const fl = (x, gap) => (inline(x) ? V(inline(x)) : G(gap));
+
+function blankState() {
+  const st = { produto: 'simples', addon: false, segmento: 'outro', acao: 'whatsapp', fotos: '', origem: [], decide: [], secoesEdited: false, ferramentaEdited: false, example: '', step: 'capa', lastStep: '' };
+  TEXT_IDS.forEach((id) => { st[id] = ''; });
+  return st;
+}
+
+function suggestedSections(st) {
+  const seg = SEGMENTS[st.segmento] || SEGMENTS.outro;
+  const p = PRODUCTS[st.produto] || PRODUCTS.simples;
+  return (p.map === 's' ? seg.s : seg.c).map((x, i) => `${i + 1}. ${x}`).join('\n');
+}
+function suggestedTool(st) { return (SEGMENTS[st.segmento] || SEGMENTS.outro).tool; }
+
+function derived(st) {
+  const p = PRODUCTS[st.produto] || PRODUCTS.simples;
+  const n3 = st.addon && st.produto !== 'simples';
+  return {
+    p,
+    motion: n3 ? 'N3' : p.motion,
+    proText: n3 ? 'N3 com outra cena assinatura, para o cliente comparar com a variante A' : MOTION[p.pro],
+    stack: STACK[p.stack],
+    stackKey: p.stack,
+  };
+}
+
+function buildPrompt(st) {
+  const d = derived(st);
+  const seg = SEGMENTS[st.segmento] || SEGMENTS.outro;
+  const nome = t(st.nome);
+  const L = [];
+  const push = (...xs) => L.push(...xs);
+
+  push(`# PROMPT KEYCODE · SITE ${nome ? V(nome) : G('NOME DO CLIENTE')}`, '');
+  push('Você é o estúdio KeyCode: diretor de arte, designer de interação e engenheiro front-end sênior. Vai criar este site no padrão dos nossos melhores trabalhos (Speed Travel, Bytes Eletrônicos, Konus Pizza e keycodes.com.br): acabamento de premiação e conversão de negócio local. Efeito que atrapalha a venda é defeito.');
+  push('Antes de criar, aponte o que estiver vago ou contraditório na ficha. Onde aparecer [NÃO INFORMADO], pesquise no site e no Instagram do cliente; se não achar, use placeholder âmbar e siga.', '');
+
+  push('## FICHA DO PROJETO', '');
+  push('### Cliente');
+  push(`- Nome: ${nome ? V(nome) : G()}`);
+  push(`- Segmento: ${V(seg.name)}`);
+  push(`- Cidade e região: ${f(st.cidade)}`);
+  push(`- Instagram: ${f(st.instagram)}`);
+  push(`- Site atual: ${f(st.site)}`, '');
+
+  push('### Projeto');
+  push(`- Produto contratado: ${V(d.p.label)}, ${d.p.scope}`);
+  if (t(st.paginas) && st.produto !== 'simples') push(`- Páginas: ${V(inline(st.paginas))}`);
+  push(`- Nível de motion contratado: ${V(MOTION[d.motion])}`);
+  push(`- Variante PRO do laboratório: ${V(d.proText)}`);
+  push(`- Stack: ${V(d.stack)}`, '');
+
+  push('### Objetivo');
+  push(`- Ação principal: ${V(ACOES[st.acao] || ACOES.whatsapp)}`);
+  push(`- WhatsApp de vendas: ${f(st.whats)}`);
+  push(`- Mensagem base do WhatsApp: ${t(st.msg) ? V(t(st.msg)) : V('Olá! Vim pelo site e quero [o que o botão oferece].')}`);
+  push(`- Ação secundária: ${f(st.acao2)}`);
+  push(`- De onde vem o visitante: ${st.origem.length ? V(st.origem.join(', ')) : G()}`);
+  push(`- Meta em 90 dias: ${f(st.meta)}`, '');
+
+  push('### Público');
+  push(`- Quem compra: ${f(st.publico)}`);
+  push(`- Dor, nas palavras dele: ${f(st.dor)}`);
+  push(`- Objeções que ele mais ouve: ${fl(st.objecoes)}`);
+  push(`- O que faz ele decidir: ${st.decide.length ? V(st.decide.join(', ')) : G()}`, '');
+
+  push('### Oferta e prova');
+  push(`- Carro-chefe e preço: ${f(st.carro)}`);
+  push(`- Oferta ou condição: ${f(st.oferta)}`);
+  push(`- Garantia: ${f(st.garantia)}`);
+  push(`- O que só ele faz: ${f(st.diferencial)}`);
+  push(`- Provas reais disponíveis: ${fl(st.provas)}`, '');
+
+  push('### Marca');
+  push(`- Marca existente (logo, cores, fontes): ${t(st.marca) ? V(inline(st.marca)) : G('NÃO INFORMADO: propor no laboratório')}`);
+  push(`- De onde tirar a paleta: ${t(st.paleta) ? V(t(st.paleta)) : G('NÃO INFORMADO: tirar do mundo real do cliente (fachada, letreiro, embalagem, feed)')}`);
+  push(`- Personalidade em uma frase: ${f(st.personalidade)}`);
+  push(`- Tom em 3 palavras: ${f(st.tom)}`);
+  push(`- Referências do cliente: ${fl(st.refs)}`, '');
+
+  push('### Materiais');
+  push(`- Fotos: ${st.fotos ? V(FOTOS[st.fotos]) : G()}`);
+  if (t(st.copy)) {
+    push('- Copy: usar a copy abaixo como base e ajustar só para caber no layout:', V(t(st.copy)));
+  } else {
+    push(`- Copy: ${V('escrever a partir da ficha, seguindo o DNA KeyCode')}`);
+  }
+  if (t(st.obs)) push(`- Observações: ${V(inline(st.obs))}`);
+  push('');
+
+  push('### Mapa de seções (o laboratório pode ajustar, dentro do limite contratado)');
+  push(t(st.secoes) ? V(t(st.secoes)) : V(suggestedSections(st)), '');
+  push('### Ferramenta que decide pelo cliente');
+  push(`- ${t(st.ferramenta) ? V(t(st.ferramenta)) : V(suggestedTool(st))}`, '');
+
+  push('## MOTOR KEYCODE (padrão fixo)', '');
+
+  push('### 1. Como trabalhar');
+  push('ETAPA 1 · LABORATÓRIO. Entregue e PARE.');
+  push('Uma página única, com meta robots noindex e fora do menu, contendo:');
+  push('a) Análise da marca em 3 cartões: personalidade (uma frase + 4 tags), o que vende (com números reais) e paleta (4 cores tiradas do mundo real do cliente, cada uma com nome, HEX e função) + par tipográfico que conversa com o logo.');
+  push('b) Estrutura de vendas: cada seção com o trabalho que ela faz em até 6 palavras ("A frase que prende", "Preço e botão na cara", "Tirar o medo da compra").');
+  push('c) 3 variantes funcionando por seção: A (recomendada, com o porquê em uma linha), B (alternativa) e C PRO (no nível da variante PRO da ficha, marcada como upgrade).');
+  push('d) 3 referências (Awwwards, Godly ou Refero) com link e o que aproveitar de cada; componentes usados (21st.dev, Magic UI, Aceternity UI, shadcn/ui) com link e licença.');
+  push('O cliente escolhe uma variante por seção.', '');
+  push('ETAPA 2 · BUILD. Só depois da escolha: a página final com as variantes escolhidas, código completo, arquivo por arquivo.', '');
+  push('ETAPA 3 · NOTA. De 0 a 10 em Design (40%), Usabilidade (30%), Criatividade (20%) e Conteúdo (10%), o que subiria cada nota e os critérios de aceite marcados.', '');
+
+  push('### 2. DNA KeyCode');
+  push('Copy');
+  push('- Headline em dois tempos: afirmação curta + prova ou virada. Referência: "Internet que não trava. E a gente prova." · "Velocidade medida. Não prometida." · "O próximo celular é aqui."');
+  push('- A palavra que vende o título vai em <em>, na cor de destaque.');
+  push('- Título de seção diz o que a seção resolve ("Sem letra miúda.", "Dúvidas rápidas."), nunca o tipo de bloco ("Garantia", "FAQ").');
+  push('- Português do Brasil, frase curta, "você", sem jargão.', '');
+  push('Conversão');
+  push('- Todo CTA abre o WhatsApp com a mensagem escrita para aquele contexto (produto, plano, seção), com a origem UTM anexada e data-plan no botão para o rastreio.');
+  push('- A ferramenta que decide pelo cliente fica no hero ou logo abaixo, resolve em até 3 toques e entrega a mensagem pronta.');
+  push('- Preço e parcela reais na tela sempre que o negócio permitir.');
+  push('- No celular: barra fixa com o CTA e botão flutuante a partir de 640 px de rolagem, escondidos ao chegar no rodapé. A navegação fica sólida ao rolar e some ao descer.');
+  push('- Formulários sem servidor: montam a mensagem e abrem o WhatsApp do próprio visitante; nada fica salvo.');
+  push('- Contador regressivo só com oferta real e data configurada; sem data, ele não aparece.', '');
+  push('Visual');
+  push('- Uma cena assinatura ligada ao produto do cliente, no nível contratado. Referência: na Speed, a fibra se desenha com um pulso de luz conforme a rolagem; na variante PRO da Bytes, a câmera entra na loja.');
+  push('- Primeira dobra com o produto ou a prova; palavra gigante atrás do produto quando couber.');
+  push('- Repertório: títulos que sobem linha a linha de dentro de máscara (SplitText); manifesto com palavras que acendem no scroll; faixa que acelera e inverte com a velocidade da rolagem; pilha de cards fixada; fotos que abrem com clip-path e parallax por dentro do quadro; contadores. Use o que serve à história, nunca tudo.');
+  push('- Com mouse: luz que segue o cursor nos cards e botões magnéticos. No toque, nada disso.');
+  push('- Rodapé sobe por baixo da última seção (padrão KeyCode).');
+  push('- Paleta tirada do mundo real do cliente; tipografia que conversa com o logo.', '');
+  push('Conteúdo real');
+  push('- Preços, produtos e fotos vêm do cliente. Nunca invente depoimento, número, prêmio ou certificação.');
+  push('- O que faltar vira placeholder âmbar visível: <span class="ph">[INSERIR …]</span>. Foto provisória de banco de imagem só com a lista de troca no README.', '');
+
+  push('### 3. Motion e performance');
+  push(`- ${MOTION.N1}.`);
+  push(`- ${MOTION.N2}.`);
+  push(`- ${MOTION.N3}.`);
+  push('- Tokens: rápido 160 ms, base 240 ms, lento 480 ms; ease cubic-bezier(.2, .8, .2, 1); no GSAP, power3.out e expo.out.');
+  push('- Anime só transform, opacity e clip-path. Nada de filter durante o scroll.');
+  push('- Pins só em telas a partir de 900 × 680 px, com versão sem pin no celular (gsap.matchMedia()). Crie os pins primeiro, na ordem da página.');
+  push('- Loops e faixas pausam fora da tela. ScrollTrigger.config({ ignoreMobileResize: true }). Lenis ligado ao ticker do GSAP, com lagSmoothing(0).');
+  push('- A intro espera as fontes e a imagem do hero, com limite de 900 ms. Preloader só no N3, com no máximo 2 s.');
+  push('- Sem GSAP (CDN fora do ar) ou com prefers-reduced-motion: a página fica estática, legível e clicável (classe .rm na raiz). Nenhum conteúdo depende de animação para aparecer.');
+  push('- Celular: LCP < 2,5 s em 4G, CLS < 0,1, INP < 200 ms, 60 fps. Imagem do hero com preload e fetchpriority="high"; as demais com loading="lazy", em WebP ou AVIF.', '');
+
+  push('### 4. Stack');
+  if (d.stackKey === 'next') {
+    push('- Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui. GSAP via @gsap/react (useGSAP) só em Client Components; 3D com carregamento dinâmico (next/dynamic, ssr: false).');
+    push('- Componentes de 21st.dev, Magic UI e Aceternity UI instalados direto, ligados aos tokens do tema.');
+  } else {
+    push('- HTML, CSS e JS sem build. GSAP 3.13 (ScrollTrigger, SplitText, MotionPathPlugin) e Lenis pelo CDN do jsDelivr, com versões fixas.');
+    push('- Estrutura: index.html (e demais páginas), assets/css/style.css (tokens em :root), assets/js/site.js (base: WhatsApp, rastreio, menu, formulários e animações genéricas), assets/js/main.js (só da página), assets/img, assets/docs. Cache com ?v= nos links.');
+    push('- Componentes de 21st.dev, Magic UI e Aceternity UI entram como referência de padrão, portados para JS puro + GSAP.');
+  }
+  push('- Regra de negócio (quiz, simulador, recomendação, carrinho) em arquivo próprio com teste. Exemplo: plan-logic.js + tests/plan-logic.test.js.', '');
+
+  push('### 5. Lançamento');
+  push('- SEO local: title e description únicos, canonical, Open Graph com imagem própria de 1200 × 630 (nunca o favicon), schema LocalBusiness (endereço, horário, telefone, geo), sitemap.xml e robots.txt.');
+  push('- Rastreio: Meta Pixel e GA4 só no domínio de produção; evento Lead / generate_lead em todo CTA, com a origem.');
+  push('- Acessibilidade: HTML semântico, foco visível, abas e quiz no teclado, aria nos controles, contraste AA.');
+  push('- Páginas de termos e privacidade (LGPD) e README com as páginas, como rodar e "Antes de publicar" (placeholders e fotos a trocar).', '');
+
+  push('### 6. Proibido');
+  push('Gradiente roxo-azul genérico, emoji em título, grade de cards idênticos, ícone decorativo em todo item, "Bem-vindo ao nosso site", "soluções inovadoras", lorem ipsum, efeito pelo efeito, animação que atrasa o CTA, seção ou nível de motion além do contratado. Ideia boa fora do escopo vai para "Upgrades sugeridos", no fim.', '');
+
+  push('### Critérios de aceite');
+  push('- [ ] CTA principal visível na primeira dobra em 390 px');
+  push('- [ ] Seções e nível de motion dentro do contratado');
+  push('- [ ] Toda mensagem de WhatsApp diz de onde a pessoa veio e o que ela quer');
+  push('- [ ] Nenhuma prova inventada; faltas em placeholder âmbar');
+  push('- [ ] Pares de cor em AA');
+  push('- [ ] 60 fps, versão .rm completa e prefers-reduced-motion respeitado');
+  push('- [ ] LCP < 2,5 s e CLS < 0,1 no celular');
+  push('- [ ] Evento de lead em todo CTA; Pixel só em produção');
+  push('- [ ] Schema LocalBusiness e Open Graph 1200 × 630');
+  push('- [ ] Licença de cada componente de terceiro listada no README');
+
+  return L.join('\n');
+}
+
+const plainText = (s) => s.replace(/[\u0001\u0002\u0003\u0004]/g, '');
+const gapCount = (s) => (s.match(/\u0003/g) || []).length;
+
+const EXAMPLES = {
+  bytes: { label: 'Bytes Eletrônicos', data: {
+    nome: 'Bytes Eletrônicos', segmento: 'varejo', cidade: 'Cacoal (RO), loja no Cacoal Shopping', instagram: '@byteseletronicos', site: 'byteseletronicos.com.br',
+    produto: 'simples', acao: 'whatsapp', msg: 'Olá! Vim pelo site e tenho interesse no [aparelho]. Está disponível?', acao2: 'WhatsApp de suporte da BytesLab, em número separado',
+    carro: 'iPhone 17 Pro 256 GB por 12x R$ 753,39 (preços reais do site atual)', oferta: '12x no boleto, sem banco (crediário próprio); troca do usado como parte do pagamento',
+    garantia: '1 ano em todos os produtos, novos e seminovos', diferencial: 'BytesLab: microsolda de placa, troca de vidro traseiro a laser e polimento de tela',
+    provas: '7 anos de loja\n19,8 mil seguidores no Instagram\nLoja física no Cacoal Shopping\nOriginais com nota fiscal',
+    paleta: 'Da fachada: azul do letreiro (#0066FF), laranja do neon da porta (#FF6A13) e azul-noite do shopping à noite (#050B1F)',
+    personalidade: 'O especialista do bairro com vitrine de shopping', tom: 'técnico, seguro, atual', fotos: 'insta',
+  } },
+  speed: { label: 'Speed Travel', data: {
+    nome: 'Speed Travel Telecom', segmento: 'provedor', cidade: 'Cacoal e Ji-Paraná (RO)', produto: 'institucional',
+    paginas: 'Início, Canais, Móvel, Empresas, Indique um amigo, Privacidade', acao: 'whatsapp',
+    msg: 'Olá! Vim pelo site e quero assinar o plano [plano] (R$ [preço]/mês).', acao2: 'Consultar cobertura pelo CEP',
+    dor: 'Internet que trava', carro: 'Fibra 700 Mega com Wi-Fi 6 por R$ 114,99/mês (planos de 300 Mega a 1 Giga, de R$ 94,99 a R$ 154,99)',
+    diferencial: '100% fibra, Wi-Fi 6 e suporte de gente daqui', provas: '618 Mbps de média real medida em Cacoal',
+  } },
+  konus: { label: 'Konus Pizza', data: {
+    nome: 'Konus Pizza', segmento: 'food', cidade: 'Cacoal (RO), no Cacoal Shopping', produto: 'simples', acao: 'pedido',
+    msg: 'Olá! Vim pelo site e quero pedir:', carro: 'Pizza no cone, 13 sabores com preço',
+  } },
+};
+
+/* ===== Interface ===== */
+(() => {
+  const $ = (s, c = document) => c.querySelector(s);
+  const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+  const KEY = 'kc-prompt-site-v4';
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const form = $('#form');
+  const out = $('#prompt');
+  let st = blankState();
+  let lastPlain = '';
+
+  const STEPS = [
+    { id: 'produto', label: 'Produto' },
+    { id: 'segmento', label: 'Segmento', auto: 'segmento' },
+    { id: 'cliente', label: 'Cliente' },
+    { id: 'acao', label: 'Objetivo', auto: 'acao' },
+    { id: 'contato', label: 'WhatsApp', optional: true },
+    { id: 'publico', label: 'Público' },
+    { id: 'oferta', label: 'Oferta' },
+    { id: 'prova', label: 'Prova' },
+    { id: 'marca', label: 'Marca', optional: true },
+    { id: 'materiais', label: 'Materiais', optional: true },
+    { id: 'estrutura', label: 'Estrutura' },
+    { id: 'prompt', label: 'Prompt' },
+  ];
+  const ORDER = STEPS.map((s) => s.id);
+
+  /* ---- ficha <-> estado ---- */
+  const radio = (name) => { const r = $(`input[name="${name}"]:checked`); return r ? r.value : null; };
+  function readForm() {
+    TEXT_IDS.forEach((id) => { st[id] = $('#' + id).value; });
+    st.produto = radio('produto') || st.produto;
+    st.segmento = radio('segmento') || st.segmento;
+    st.acao = radio('acao') || st.acao;
+    const foto = radio('fotos');
+    st.fotos = foto === null ? st.fotos : foto;
+    st.addon = $('#addon').checked;
+    st.origem = $$('input[name="origem"]:checked').map((i) => i.value);
+    st.decide = $$('input[name="decide"]:checked').map((i) => i.value);
+  }
+  function writeForm() {
+    TEXT_IDS.forEach((id) => { $('#' + id).value = st[id] || ''; });
+    if (!ACOES[st.acao]) st.acao = 'whatsapp';
+    $$('input[name="produto"]').forEach((i) => { i.checked = i.value === st.produto; });
+    $$('input[name="segmento"]').forEach((i) => { i.checked = i.value === st.segmento; });
+    $$('input[name="acao"]').forEach((i) => { i.checked = i.value === st.acao; });
+    $$('input[name="fotos"]').forEach((i) => { i.checked = i.value === st.fotos; });
+    $('#addon').checked = !!st.addon;
+    $$('input[name="origem"]').forEach((i) => { i.checked = st.origem.includes(i.value); });
+    $$('input[name="decide"]').forEach((i) => { i.checked = st.decide.includes(i.value); });
+  }
+
+  /* ---- sugestões automáticas (param quando você edita) ---- */
+  function syncSuggestions() {
+    if (!st.secoesEdited) { st.secoes = suggestedSections(st); $('#secoes').value = st.secoes; }
+    if (!st.ferramentaEdited) { st.ferramenta = suggestedTool(st); $('#ferramenta').value = st.ferramenta; }
+    $('#restoreSecoes').hidden = !st.secoesEdited;
+    $('#restoreFerramenta').hidden = !st.ferramentaEdited;
+    const lim = st.produto === 'simples' ? 'O limite da LP Simples é 6 seções.' : 'O limite desta faixa é 10 seções ou 3 páginas.';
+    $('#secoesHint').textContent = (st.secoesEdited ? 'Editado por você. ' : 'Sugestão do segmento, dentro do limite do produto. ') + lim;
+  }
+
+  /* ---- render do prompt ---- */
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  function toHTML(raw) {
+    const html = esc(raw)
+      .replace(/\u0001/g, '<mark class="v">').replace(/\u0002/g, '</mark>')
+      .replace(/\u0003/g, '<mark class="g">').replace(/\u0004/g, '</mark>');
+    return html.split('\n').map((line) => {
+      if (line.startsWith('### ')) return `<span class="h3">${line}</span>`;
+      if (line.startsWith('## ')) return `<span class="h2">${line}</span>`;
+      if (line.startsWith('# ')) return `<span class="h1">${line}</span>`;
+      return line;
+    }).join('\n');
+  }
+  function slug(s) {
+    return t(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cliente';
+  }
+  const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`;
+
+  function render() {
+    const d = derived(st);
+    const simples = st.produto === 'simples';
+    $('#addonWrap').hidden = simples;
+    $('#paginasField').hidden = simples;
+    if (simples && st.addon) { st.addon = false; $('#addon').checked = false; }
+
+    const raw = buildPrompt(st);
+    lastPlain = plainText(raw);
+    const gaps = gapCount(raw);
+    const lines = lastPlain.split('\n').length;
+
+    // topo: lacunas ao vivo durante as perguntas
+    if (st.step !== 'capa') {
+      const idx = ORDER.indexOf(st.step);
+      $('#topMeta').innerHTML = `<span class="step-txt">passo ${idx + 1} de ${ORDER.length}</span><span class="g">${plural(gaps, 'lacuna', 'lacunas')}</span>`;
+    } else {
+      $('#topMeta').innerHTML = '<span><i class="dot" aria-hidden="true"></i>padrão Speed · Bytes · Konus</span>';
+    }
+
+    if (st.step === 'prompt') {
+      out.innerHTML = toHTML(raw);
+      $('#stats').innerHTML = `${lines} linhas · ${lastPlain.length.toLocaleString('pt-BR')} caracteres · <span class="g">${plural(gaps, 'lacuna', 'lacunas')}</span>`;
+      $('#fileName').textContent = `prompt-${slug(st.nome)}.md`;
+      const missing = ESSENTIALS.filter(([id]) => !t(st[id]));
+      $('#h-prompt').innerHTML = missing.length ? 'Prompt pronto, <em>com lacunas.</em>' : 'Prompt <em>pronto.</em>';
+      const box = $('#resMissing');
+      box.hidden = !missing.length;
+      box.innerHTML = missing.length
+        ? `<span>Essenciais em branco: a IA vai pesquisar ou deixar placeholder.</span>` + missing.map(([id, label, step]) => `<button type="button" data-goto="${step}" data-field="${id}">${label}</button>`).join('')
+        : '';
+      const nSec = t(st.secoes).split('\n').filter((l) => l.trim()).length;
+      $('#resSum').innerHTML =
+        `<div><dt>produto</dt><dd>${esc(d.p.label)}</dd></div>` +
+        `<div><dt>motion · variante PRO</dt><dd>${d.motion} · ${d.motion === 'N3' ? 'N3, outra cena' : d.p.pro}</dd></div>` +
+        `<div><dt>stack</dt><dd>${d.stackKey === 'next' ? 'Next.js + shadcn/ui' : 'Estático + GSAP + Lenis'}</dd></div>` +
+        `<div><dt>seções</dt><dd>${nSec} no mapa</dd></div>`;
+    }
+  }
+
+  /* ---- rascunho neste navegador ---- */
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* sem armazenamento: segue sem rascunho */ } }
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      return raw ? Object.assign(blankState(), JSON.parse(raw)) : null;
+    } catch (e) { return null; }
+  }
+
+  /* ---- telas ---- */
+  function buildRail() {
+    $('#railList').innerHTML = STEPS.map((s, i) => `<li><button type="button" data-goto="${s.id}"><span class="n">${String(i + 1).padStart(2, '0')}</span>${s.label}</button></li>`).join('');
+  }
+  function show(focus) {
+    const view = st.step;
+    $$('[data-screen]').forEach((s) => { s.hidden = s.dataset.screen !== view; });
+    const inFlow = view !== 'capa';
+    const idx = ORDER.indexOf(view);
+    $('#rail').hidden = !inFlow;
+    $('#progress').hidden = !inFlow;
+    $('#stepnav').hidden = !inFlow || view === 'prompt';
+    if (inFlow) {
+      $('#progress i').style.width = `${((idx + 1) / ORDER.length) * 100}%`;
+      $$('#railList button').forEach((b, i) => {
+        b.classList.toggle('is-done', i < idx);
+        if (i === idx) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      });
+      const cur = $$('#railList button')[idx];
+      if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+      const sec = $(`[data-screen="${view}"]`);
+      const count = $('[data-count]', sec);
+      if (count) count.textContent = `// ${String(idx + 1).padStart(2, '0')} de ${ORDER.length} · ${STEPS[idx].label.toLowerCase()}`;
+      const step = STEPS[idx];
+      $('#skipBtn').hidden = !step.optional;
+      $('#nextBtn').innerHTML = view === 'estrutura' ? 'Gerar prompt <span class="arrow" aria-hidden="true">→</span>' : 'Continuar <span class="arrow" aria-hidden="true">→</span>';
+      $('#backBtn').disabled = false;
+    }
+    render();
+    window.scrollTo(0, 0);
+    if (focus !== false) {
+      const h = $(`[data-screen="${view}"] h1, [data-screen="${view}"] h2`);
+      if (h) h.focus({ preventScroll: true });
+    }
+  }
+  function go(id, focus) {
+    if (id !== 'capa') st.lastStep = id;
+    st.step = id;
+    save();
+    show(focus);
+    updateResume();
+  }
+  const next = () => { const i = ORDER.indexOf(st.step); if (i < ORDER.length - 1) go(ORDER[i + 1]); };
+  const back = () => { const i = ORDER.indexOf(st.step); go(i > 0 ? ORDER[i - 1] : 'capa'); };
+
+  function applyState(nextState, step) {
+    st = nextState;
+    writeForm();
+    syncSuggestions();
+    go(step || st.step || 'capa');
+  }
+
+  function loadExample(key) {
+    const next = Object.assign(blankState(), EXAMPLES[key].data, { example: key });
+    applyState(next, 'prompt');
+  }
+
+  function updateResume() {
+    const btn = $('#resumeBtn');
+    const can = ORDER.includes(st.lastStep);
+    btn.hidden = !can;
+    if (can) btn.textContent = `Continuar ${t(st.nome) || 'a ficha'} · passo ${ORDER.indexOf(st.lastStep) + 1}`;
+  }
+
+  /* ---- eventos ---- */
+  let autoTimer = 0;
+  let pointerPick = 0;
+  form.addEventListener('pointerdown', (e) => { if (e.target.closest('.opt')) pointerPick = Date.now(); });
+  const onEdit = (e) => {
+    if (e.target.id === 'secoes') st.secoesEdited = true;
+    if (e.target.id === 'ferramenta') st.ferramentaEdited = true;
+    readForm();
+    syncSuggestions();
+    render();
+    save();
+    const step = STEPS[ORDER.indexOf(st.step)];
+    // escolha com toque ou clique avança sozinha; com teclado, você confirma com Enter ou Continuar
+    if (e.type === 'change' && step && step.auto && e.target.name === step.auto && Date.now() - pointerPick < 1500) {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(next, RM ? 0 : 260);
+    }
+  };
+  form.addEventListener('input', onEdit);
+  form.addEventListener('change', onEdit);
+  form.addEventListener('submit', (e) => e.preventDefault());
+  form.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('input[type="text"]')) { e.preventDefault(); next(); }
+  });
+
+  $('#restoreSecoes').addEventListener('click', () => { st.secoesEdited = false; syncSuggestions(); render(); save(); });
+  $('#restoreFerramenta').addEventListener('click', () => { st.ferramentaEdited = false; syncSuggestions(); render(); save(); });
+
+  $('#startBtn').addEventListener('click', () => { applyState(blankState(), 'produto'); });
+  $('#resumeBtn').addEventListener('click', () => go(st.lastStep));
+  $('#homeBtn').addEventListener('click', () => go('capa'));
+  $$('[data-example]').forEach((b) => b.addEventListener('click', () => loadExample(b.dataset.example)));
+
+  $('#nextBtn').addEventListener('click', next);
+  $('#skipBtn').addEventListener('click', next);
+  $('#backBtn').addEventListener('click', back);
+  $('#editBtn').addEventListener('click', () => go('produto'));
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-goto]');
+    if (!b) return;
+    go(b.dataset.goto, !b.dataset.field);
+    if (b.dataset.field) $('#' + b.dataset.field).focus();
+  });
+
+  const resetBtn = $('#resetBtn');
+  let armed = 0;
+  resetBtn.addEventListener('click', () => {
+    if (!armed) {
+      resetBtn.textContent = 'Apagar esta ficha?';
+      resetBtn.classList.add('btn--armed');
+      armed = setTimeout(() => { armed = 0; resetBtn.textContent = 'Novo cliente'; resetBtn.classList.remove('btn--armed'); }, 3000);
+      return;
+    }
+    clearTimeout(armed); armed = 0;
+    resetBtn.textContent = 'Novo cliente';
+    resetBtn.classList.remove('btn--armed');
+    applyState(blankState(), 'produto');
+  });
+
+  /* ---- copiar ---- */
+  $$('[data-copy]').forEach((btn) => btn.addEventListener('click', () => {
+    const done = (msg) => {
+      $$('[data-copy]').forEach((b) => { b.textContent = msg; });
+      setTimeout(() => $$('[data-copy]').forEach((b) => { b.textContent = 'Copiar prompt'; }), 2200);
+    };
+    const fallback = () => {
+      const range = document.createRange();
+      range.selectNodeContents(out);
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      done('Texto selecionado: Ctrl+C');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lastPlain).then(() => done('Copiado'), fallback);
+    } else {
+      fallback();
+    }
+  }));
+
+  /* ---- capa: amostra real do resultado ---- */
+  const sample = buildPrompt(Object.assign(blankState(), EXAMPLES.bytes.data)).split('\n').slice(0, 30).join('\n');
+  $('#heroPrompt').innerHTML = toHTML(sample);
+
+  /* ---- início: sempre pela capa; se houver rascunho, o botão de continuar aparece ---- */
+  buildRail();
+  st = load() || blankState();
+  st.step = 'capa';
+  writeForm();
+  syncSuggestions();
+  show(false);
+  updateResume();
+})();
+</script>
+
+</body></html>
